@@ -1,0 +1,16 @@
+{
+  "name": "brainskill-telegram-support-bot",
+  "version": "1.0.0",
+  "description": "Bot de suporte independente para a plataforma BrainSkill.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "BrainSkill Team",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "node-telegram-bot-api": "^0.66.0"
+  }
+}
