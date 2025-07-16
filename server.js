@@ -1,32 +1,18 @@
 // server.js - Bot de Suporte INDEPENDENTE para o BrainSkill no Telegram
 
 require('dotenv').config();
-const express = require('express');
 const TelegramBot = require('node-telegram-bot-api');
 
+// Obtenha o token do bot a partir das variáveis de ambiente
 const token = process.env.TELEGRAM_BOT_TOKEN;
 
-// Crie a instância do bot
-const bot = new TelegramBot(token);
+// Inicializa o bot a usar o método "polling".
+// O bot irá verificar constantemente por novas mensagens.
+const bot = new TelegramBot(token, { polling: true });
 
-// A linha bot.setWebHook() foi REMOVIDA. Nós configuramos manualmente.
+// --- Definição dos Comandos e Menus (lógica do bot) ---
 
-const app = express();
-app.use(express.json());
-
-// Rota de "health check" para o navegador
-app.get('/', (req, res) => {
-    res.send('Bot de Suporte do BrainSkill está online e à escuta!');
-});
-
-// Rota principal que recebe os updates do Telegram
-app.post('/api/bot', (req, res) => {
-    bot.processUpdate(req.body);
-    res.sendStatus(200);
-});
-
-// --- O resto da lógica do bot ---
-
+// Define os comandos que aparecerão no botão "Menu" do Telegram
 bot.setMyCommands([
     { command: 'start', description: '🚀 Iniciar o bot e ver o menu principal' },
     { command: 'ajuda', description: '📞 Obter ajuda e links de suporte' },
@@ -42,14 +28,11 @@ Use os botões abaixo para navegar rapidamente ou use o **Menu de Comandos** par
 Estou aqui para ajudar!
 `;
 
-// --- CORREÇÃO APLICADA AQUI ---
-// A URL da Web App deve ser uma URL HTTPS direta para o seu site.
 const webAppUrl = 'https://brainskill.site';
 
 const mainKeyboard = {
     inline_keyboard: [
         [
-            // Este botão agora aponta para uma URL válida.
             { text: '🎮 Abrir a Plataforma BrainSkill', web_app: { url: webAppUrl } }
         ],
         [
@@ -113,4 +96,8 @@ bot.onText(/\/webapp/, (msg) => {
     });
 });
 
-module.exports = app;
+console.log('🤖 Bot do BrainSkill iniciado com sucesso em modo Polling...');
+
+bot.on('polling_error', (error) => {
+    console.error(`[Erro de Polling] - ${error.message}`);
+});
