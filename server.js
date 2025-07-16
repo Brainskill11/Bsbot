@@ -1,18 +1,22 @@
-// server.js - Bot de Suporte INDEPENDENTE para o BrainSkill no Telegram
-
 require('dotenv').config();
+const express = require('express');
 const TelegramBot = require('node-telegram-bot-api');
 
-// Obtenha o token do bot a partir das variáveis de ambiente
+// --- 1. LÓGICA DO BOT (Polling) ---
+
+// Obtenha o token do bot a partir das variáveis de ambiente.
 const token = process.env.TELEGRAM_BOT_TOKEN;
 
-// Inicializa o bot a usar o método "polling".
-// O bot irá verificar constantemente por novas mensagens.
+// Verificação de segurança para garantir que o token foi carregado.
+if (!token) {
+    console.error("Erro: A variável de ambiente TELEGRAM_BOT_TOKEN não está definida. O bot não pode iniciar.");
+    process.exit(1); // Encerra a aplicação se o token estiver em falta.
+}
+
+// Inicializa o bot para verificar constantemente por novas mensagens.
 const bot = new TelegramBot(token, { polling: true });
 
-// --- Definição dos Comandos e Menus (lógica do bot) ---
-
-// Define os comandos que aparecerão no botão "Menu" do Telegram
+// Define os comandos que aparecerão no menu do Telegram.
 bot.setMyCommands([
     { command: 'start', description: '🚀 Iniciar o bot e ver o menu principal' },
     { command: 'ajuda', description: '📞 Obter ajuda e links de suporte' },
@@ -30,6 +34,7 @@ Estou aqui para ajudar!
 
 const webAppUrl = 'https://brainskill.site';
 
+// Teclado principal com todos os botões.
 const mainKeyboard = {
     inline_keyboard: [
         [
@@ -51,6 +56,7 @@ const mainKeyboard = {
     ]
 };
 
+// Listener para o comando /start
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
     bot.sendMessage(chatId, welcomeMessage, {
@@ -59,6 +65,7 @@ bot.onText(/\/start/, (msg) => {
     });
 });
 
+// Listener para o comando /ajuda
 bot.onText(/\/ajuda/, (msg) => {
     const chatId = msg.chat.id;
     bot.sendMessage(chatId, 'Precisa de ajuda? Clique no botão abaixo para ir para a nossa página de suporte.', {
@@ -70,6 +77,7 @@ bot.onText(/\/ajuda/, (msg) => {
     });
 });
 
+// Listener para o comando /regras
 bot.onText(/\/regras/, (msg) => {
     const chatId = msg.chat.id;
     bot.sendMessage(chatId, 'Consulte as nossas regras e políticas nos links abaixo:', {
@@ -85,6 +93,7 @@ bot.onText(/\/regras/, (msg) => {
     });
 });
 
+// Listener para o comando /webapp
 bot.onText(/\/webapp/, (msg) => {
     const chatId = msg.chat.id;
     bot.sendMessage(chatId, 'Clique no botão abaixo para abrir a plataforma BrainSkill diretamente no Telegram!', {
@@ -97,7 +106,24 @@ bot.onText(/\/webapp/, (msg) => {
 });
 
 console.log('🤖 Bot do BrainSkill iniciado com sucesso em modo Polling...');
-
 bot.on('polling_error', (error) => {
-    console.error(`[Erro de Polling] - ${error.message}`);
+    console.error(`[Erro de Polling do Bot]: ${error.message}`);
+});
+
+
+// --- 2. LÓGICA DO SERVIDOR WEB (Ping) ---
+const app = express();
+
+// O Render fornece a porta correta na variável de ambiente PORT.
+// Usamos 3001 como um padrão para testes locais.
+const PORT = process.env.PORT || 3001; 
+
+// Este endpoint responde aos pings dos serviços de monitorização (ex: cron-job.org).
+app.get('/', (req, res) => {
+  res.status(200).send('Bot está ativo e a funcionar.');
+});
+
+// Inicia o servidor web, o que satisfaz o requisito do Render de ter uma porta aberta.
+app.listen(PORT, () => {
+  console.log(`Servidor de Ping para manter o bot ativo a ouvir na porta ${PORT}`);
 });
